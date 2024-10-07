@@ -19,7 +19,7 @@ func ReadTransactionCommand(line *liner.State) error {
 	for {
 		var t transactionv1.Transaction
 
-		bytes := make([]byte, 8)
+		bytes := make([]byte, 12)
 		_, err := file.Read(bytes)
 
 		if err == io.EOF {

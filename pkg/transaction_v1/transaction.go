@@ -1,8 +1,12 @@
 package transactionv1
 
-import "time"
+import (
+	"time"
+
+	"github.com/shopspring/decimal"
+)
 
 type Transaction struct {
-	Amount float32
+	Amount decimal.Decimal
 	Date   time.Time
 }

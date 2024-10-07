@@ -4,10 +4,10 @@ import (
 	"fmt"
 	transactionv1 "money_app/pkg/transaction_v1"
 	"os"
-	"strconv"
 	"time"
 
 	"github.com/peterh/liner"
+	"github.com/shopspring/decimal"
 )
 
 func NewTransactionCommand(line *liner.State) error {
@@ -15,13 +15,13 @@ func NewTransactionCommand(line *liner.State) error {
 	if err != nil {
 		return err
 	}
-	num, err := strconv.ParseFloat(strAmount, 32)
+	num, err := decimal.NewFromString(strAmount)
 	if err != nil {
 		return err
 	}
 
 	newT := transactionv1.Transaction{
-		Amount: float32(num),
+		Amount: num,
 		Date:   time.Now(),
 	}
 

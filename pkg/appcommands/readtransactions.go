@@ -3,13 +3,14 @@ package appcommands
 import (
 	"fmt"
 	"io"
+	"money_app/pkg/appconfig"
 	transactionv1 "money_app/pkg/transaction_v1"
 	"os"
 
 	"github.com/peterh/liner"
 )
 
-func ReadTransactionCommand(line *liner.State) error {
+func ReadTransactionCommand(line *liner.State, config appconfig.Config) error {
 	file, err := os.Open("transaction-history")
 	if err != nil {
 		return err
@@ -29,7 +30,7 @@ func ReadTransactionCommand(line *liner.State) error {
 		if err != nil {
 			return err
 		}
-		if err := t.FromBytes(bytes); err != nil {
+		if err := t.FromBytes(bytes, config); err != nil {
 			return err
 		}
 

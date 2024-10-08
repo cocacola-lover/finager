@@ -2,12 +2,11 @@ package transactionv1
 
 import (
 	"encoding/binary"
+	"money_app/pkg/appconfig"
 	"time"
 
 	"github.com/shopspring/decimal"
 )
-
-const SHIFT = 2
 
 func dateToBytes(date time.Time) []byte {
 	year, month, day := date.Date()
@@ -28,9 +27,9 @@ func dateFromBytes(bytes []byte) time.Time {
 	)
 }
 
-func (t Transaction) ToBytes() ([]byte, error) {
+func (t Transaction) ToBytes(config appconfig.Config) ([]byte, error) {
 	bytes := make([]byte, 8)
-	binary.BigEndian.PutUint64(bytes, uint64(t.Amount.Shift(SHIFT).IntPart()))
+	binary.BigEndian.PutUint64(bytes, uint64(t.Amount.Shift(int32(config.Shift)).IntPart()))
 
 	return append(
 		bytes,
@@ -39,8 +38,8 @@ func (t Transaction) ToBytes() ([]byte, error) {
 }
 
 // Requires 12 bytes
-func (t *Transaction) FromBytes(data []byte) error {
-	t.Amount = decimal.New(int64(binary.BigEndian.Uint64(data[:8])), -SHIFT)
+func (t *Transaction) FromBytes(data []byte, config appconfig.Config) error {
+	t.Amount = decimal.New(int64(binary.BigEndian.Uint64(data[:8])), -int32(config.Shift))
 	t.Date = dateFromBytes(data[8:])
 	return nil
 }

@@ -4,6 +4,7 @@ import (
 	"encoding/gob"
 	"fmt"
 	"money_app/pkg/appcommands"
+	"money_app/pkg/appconfig"
 	transactionv1 "money_app/pkg/transaction_v1"
 	"strings"
 
@@ -11,6 +12,13 @@ import (
 )
 
 func main() {
+
+	config, err := appconfig.ReadConfig()
+	if err != nil {
+		fmt.Println("Failed to read config. Exiting...")
+		return
+	}
+
 	line := liner.NewLiner()
 	defer line.Close()
 
@@ -44,14 +52,14 @@ func main() {
 
 		line.AppendHistory(cmd)
 		if cmd == "NEW" {
-			err = appcommands.NewTransactionCommand(line)
+			err = appcommands.NewTransactionCommand(line, config)
 			if err != nil {
 				fmt.Println(err.Error())
 			} else {
 				fmt.Println("Added transaction")
 			}
 		} else if cmd == "READ" {
-			err = appcommands.ReadTransactionCommand(line)
+			err = appcommands.ReadTransactionCommand(line, config)
 			if err != nil {
 				fmt.Println(err.Error())
 			} else {

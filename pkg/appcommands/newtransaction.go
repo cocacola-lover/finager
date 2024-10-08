@@ -2,6 +2,7 @@ package appcommands
 
 import (
 	"fmt"
+	"money_app/pkg/appconfig"
 	transactionv1 "money_app/pkg/transaction_v1"
 	"os"
 	"time"
@@ -10,7 +11,7 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-func NewTransactionCommand(line *liner.State) error {
+func NewTransactionCommand(line *liner.State, config appconfig.Config) error {
 	strAmount, err := line.Prompt("Amount:")
 	if err != nil {
 		return err
@@ -32,7 +33,7 @@ func NewTransactionCommand(line *liner.State) error {
 	}
 	defer file.Close()
 
-	data, err := newT.ToBytes()
+	data, err := newT.ToBytes(config)
 	if err != nil {
 		return err
 	}

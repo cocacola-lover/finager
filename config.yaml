@@ -1,0 +1,6 @@
+# ON SETUP CONFIG. Once set these values must not be changed.
+# Otherwise you risk corrupting your data.
+
+# Shift configures how accurately float number are calculated
+# The bigger the value the less max number for transaction amount becomes
+shift: 2

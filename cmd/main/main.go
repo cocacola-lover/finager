@@ -62,8 +62,6 @@ func main() {
 			err = appcommands.ReadTransactionCommand(line, config)
 			if err != nil {
 				fmt.Println(err.Error())
-			} else {
-				fmt.Println("Shown transaction")
 			}
 		} else if cmd == "quit" {
 			break

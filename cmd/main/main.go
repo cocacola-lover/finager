@@ -1,15 +1,19 @@
 package main
 
 import (
-	"encoding/gob"
 	"fmt"
 	"money_app/pkg/appcommands"
 	"money_app/pkg/appconfig"
-	transactionv1 "money_app/pkg/transaction_v1"
+	"money_app/pkg/appcontext"
 	"strings"
+	"time"
 
 	"github.com/peterh/liner"
 )
+
+func promptString(timeContext time.Time) string {
+	return fmt.Sprintf("|%s %d|> ", timeContext.Month().String(), timeContext.Day())
+}
 
 func main() {
 
@@ -18,6 +22,8 @@ func main() {
 		fmt.Println("Failed to read config. Exiting...")
 		return
 	}
+
+	timeContext := time.Now()
 
 	line := liner.NewLiner()
 	defer line.Close()
@@ -37,10 +43,8 @@ func main() {
 	line.SetCtrlCAborts(true)
 	line.SetTabCompletionStyle(liner.TabPrints)
 
-	gob.Register(transactionv1.Transaction{})
-
 	for {
-		cmd, err := line.Prompt("gosql> ")
+		cmd, err := line.Prompt(promptString(timeContext))
 		if err != nil {
 			if err == liner.ErrPromptAborted {
 				fmt.Println("Aborted")
@@ -52,7 +56,7 @@ func main() {
 
 		line.AppendHistory(cmd)
 		if cmd == "NEW" {
-			err = appcommands.NewTransactionCommand(line, config)
+			err = appcommands.NewTransactionCommand(line, config, timeContext)
 			if err != nil {
 				fmt.Println(err.Error())
 			} else {
@@ -63,12 +67,16 @@ func main() {
 			if err != nil {
 				fmt.Println(err.Error())
 			}
+		} else if cmd == "GETDATE" {
+			appcontext.DisplayTime(timeContext)
+		} else if cmd == "SETDATE" {
+			if err = appcontext.ParseTime(line, &timeContext); err != nil {
+				fmt.Println("Failed to set date: ", err.Error())
+			}
 		} else if cmd == "quit" {
 			break
 		} else {
 			fmt.Println("Unknown command:", cmd)
 		}
 	}
-
-	fmt.Println("Closed")
 }

@@ -11,7 +11,7 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-func NewTransactionCommand(line *liner.State, config appconfig.Config) error {
+func NewTransactionCommand(line *liner.State, config appconfig.Config, ctx time.Time) error {
 	strAmount, err := line.Prompt("Amount:")
 	if err != nil {
 		return err
@@ -23,7 +23,7 @@ func NewTransactionCommand(line *liner.State, config appconfig.Config) error {
 
 	newT := transactionv1.Transaction{
 		Amount: num,
-		Date:   time.Now(),
+		Date:   ctx,
 	}
 
 	file, err := os.OpenFile("transaction-history", os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)

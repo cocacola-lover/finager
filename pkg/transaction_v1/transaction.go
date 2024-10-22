@@ -7,6 +7,7 @@ import (
 )
 
 type Transaction struct {
-	Amount decimal.Decimal
-	Date   time.Time
+	Amount  decimal.Decimal
+	Date    time.Time
+	Comment string
 }

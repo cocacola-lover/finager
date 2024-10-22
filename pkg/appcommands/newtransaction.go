@@ -12,7 +12,7 @@ import (
 )
 
 func NewTransactionCommand(line *liner.State, config appconfig.Config, ctx time.Time) error {
-	strAmount, err := line.Prompt("Amount:")
+	strAmount, err := line.Prompt("Amount: ")
 	if err != nil {
 		return err
 	}
@@ -21,9 +21,15 @@ func NewTransactionCommand(line *liner.State, config appconfig.Config, ctx time.
 		return err
 	}
 
+	comment, err := line.Prompt("Comment: ")
+	if err != nil {
+		return err
+	}
+
 	newT := transactionv1.Transaction{
-		Amount: num,
-		Date:   ctx,
+		Amount:  num,
+		Date:    ctx,
+		Comment: comment,
 	}
 
 	file, err := os.OpenFile("transaction-history", os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
@@ -33,11 +39,6 @@ func NewTransactionCommand(line *liner.State, config appconfig.Config, ctx time.
 	}
 	defer file.Close()
 
-	data, err := newT.ToBytes(config)
-	if err != nil {
-		return err
-	}
-
-	_, err = file.Write(data)
+	_, err = newT.WriteToWriter(file, config)
 	return err
 }

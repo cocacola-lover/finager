@@ -28,21 +28,13 @@ func ReadTransactionCommand(line *liner.State, config appconfig.Config) error {
 
 	for {
 		var t transactionv1.Transaction
-
-		bytes := make([]byte, 12)
-		_, err := file.Read(bytes)
-
+		_, err = t.ReadFromReader(file, config)
 		if err == io.EOF {
 			break
 		}
-
 		if err != nil {
 			return err
 		}
-		if err := t.FromBytes(bytes, config); err != nil {
-			return err
-		}
-
 		transactionArr = append(transactionArr, t)
 	}
 
@@ -61,7 +53,7 @@ func ReadTransactionCommand(line *liner.State, config appconfig.Config) error {
 			curDate = t.Date
 			printDate(curDate)
 		}
-		fmt.Printf("Spent %v₽\n", t.Amount)
+		fmt.Printf("Spent %v₽; %s\n", t.Amount, t.Comment)
 	}
 
 	return nil

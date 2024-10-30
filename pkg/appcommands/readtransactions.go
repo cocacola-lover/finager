@@ -20,7 +20,7 @@ func ReadTransactionCommand(line *liner.State, config appconfig.Config) error {
 
 	var transactionArr []transactionv1.Transaction
 
-	file, err := os.Open("transaction-history")
+	file, err := os.Open("transaction-history.bin")
 	if err != nil {
 		return err
 	}
@@ -53,7 +53,7 @@ func ReadTransactionCommand(line *liner.State, config appconfig.Config) error {
 			curDate = t.Date
 			printDate(curDate)
 		}
-		fmt.Printf("Spent %v₽; %s\n", t.Amount, t.Comment)
+		fmt.Printf("Spent %v₽; %s; %s\n", t.Amount, config.Tags[t.Tag], t.Comment)
 	}
 
 	return nil

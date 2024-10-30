@@ -2,15 +2,14 @@ package transactionv1
 
 import (
 	"encoding/binary"
-	"errors"
 	"io"
 	"money_app/pkg/appconfig"
+	"money_app/pkg/apperrors"
+	"money_app/pkg/encodingutils"
 	"time"
 
 	"github.com/shopspring/decimal"
 )
-
-var errCorruptedData = errors.New("corrupted transaction")
 
 func dateToBytes(date time.Time) []byte {
 	year, month, day := date.Date()
@@ -31,58 +30,68 @@ func dateFromBytes(bytes []byte) time.Time {
 	)
 }
 
-func (t Transaction) toBytes(config appconfig.Config) []byte {
+func (t Transaction) toBytes(config appconfig.Config) ([]byte, error) {
 	var data []byte
 
 	// Store amount
-	amountbytes := make([]byte, 8)
-	binary.BigEndian.PutUint64(amountbytes, uint64(t.Amount.Shift(int32(config.Shift)).IntPart()))
-	data = append(data, amountbytes...)
+	data = append(data, encodingutils.Uint64ToBytes(uint64(t.Amount.Shift(int32(config.Shift)).IntPart()))...)
 
 	// Store date
 	data = append(data, dateToBytes(t.Date)...)
 
-	// Store comment length and comment
-	commentBytes := []byte(t.Comment)
-	lengthBytes := make([]byte, 4)
-	binary.BigEndian.PutUint32(lengthBytes, uint32(len(commentBytes)))
-	data = append(append(data, lengthBytes...), commentBytes...)
+	// Store tag
+	data = append(data, encodingutils.Uint32ToBytes(t.Tag)...)
 
-	return data
+	// Store comment length and comment
+	data = append(data, encodingutils.StringToBytes(t.Comment)...)
+
+	return data, nil
 }
 
 func (t Transaction) WriteToWriter(w io.Writer, config appconfig.Config) (int, error) {
-	return w.Write(t.toBytes(config))
+	bytes, err := t.toBytes(config)
+	if err != nil {
+		return 0, err
+	}
+	return w.Write(bytes)
 }
 
 func (t *Transaction) ReadFromReader(r io.Reader, config appconfig.Config) (int, error) {
-	data := make([]byte, 16)
+	data := make([]byte, 20)
 	n, err := r.Read(data)
 	if err != nil {
 		if err == io.EOF {
 			if n == 0 {
 				return 0, err
 			}
-			return n, errCorruptedData
+			return n, apperrors.ErrCorruptedData
 		}
 		return n, err
 	}
 
-	t.Amount = decimal.New(int64(binary.BigEndian.Uint64(data[:8])), -int32(config.Shift))
+	t.Amount = decimal.New(
+		int64(binary.BigEndian.Uint64(data[:8])),
+		-int32(config.Shift),
+	)
 	t.Date = dateFromBytes(data[8:12])
 
-	commentLength := int(binary.BigEndian.Uint32(data[12:16]))
+	t.Tag = binary.BigEndian.Uint32(data[12:16])
+	if _, ok := config.Tags[t.Tag]; !ok {
+		return 20, apperrors.ErrCorruptedData
+	}
+
+	commentLength := int(binary.BigEndian.Uint32(data[16:20]))
 	data = make([]byte, commentLength)
 	n, err = r.Read(data)
 	if err != nil {
 		if err == io.EOF {
 			if n != int(commentLength) {
-				return 16 + n, errCorruptedData
+				return 20 + n, apperrors.ErrCorruptedData
 			}
 		} else {
-			return 16 + n, err
+			return 20 + n, err
 		}
 	}
 	t.Comment = string(data)
-	return 16 + n, nil
+	return 20 + n, nil
 }

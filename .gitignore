@@ -1,2 +1,3 @@
-transaction-history
+transaction-history.bin
+tags.bin
 cmd/test

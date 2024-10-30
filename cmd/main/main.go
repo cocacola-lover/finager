@@ -56,12 +56,7 @@ func main() {
 
 		line.AppendHistory(cmd)
 		if cmd == "NEW" {
-			err = appcommands.NewTransactionCommand(line, config, timeContext)
-			if err != nil {
-				fmt.Println(err.Error())
-			} else {
-				fmt.Println("Added transaction")
-			}
+			appcommands.NewTransactionCommand(line, config, timeContext)
 		} else if cmd == "READ" {
 			err = appcommands.ReadTransactionCommand(line, config)
 			if err != nil {
@@ -73,6 +68,10 @@ func main() {
 			if err = appcontext.ParseTime(line, &timeContext); err != nil {
 				fmt.Println("Failed to set date: ", err.Error())
 			}
+		} else if cmd == "ADDTAG" {
+			appcommands.AddTag(line, &config)
+		} else if cmd == "READTAGS" {
+			appcommands.ReadTags(config)
 		} else if cmd == "quit" {
 			break
 		} else {

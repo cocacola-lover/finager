@@ -16,11 +16,9 @@ func printDate(date time.Time) {
 	fmt.Printf("-------\n\033[31m* %d/%d/%d\033[0m\n-------\n", date.Day(), date.Month(), date.Year())
 }
 
-func ReadTransactionCommand(line *liner.State, config appconfig.Config) error {
+func readFileIntoArr(fileName string, transactionArr *[]transactionv1.Transaction, config appconfig.Config) error {
 
-	var transactionArr []transactionv1.Transaction
-
-	file, err := os.Open("transaction-history.bin")
+	file, err := os.Open(fmt.Sprintf("transaction-history/%s", fileName))
 	if err != nil {
 		return err
 	}
@@ -35,11 +33,32 @@ func ReadTransactionCommand(line *liner.State, config appconfig.Config) error {
 		if err != nil {
 			return err
 		}
-		transactionArr = append(transactionArr, t)
+		*transactionArr = append(*transactionArr, t)
+	}
+
+	return nil
+}
+
+func ReadTransactionCommand(line *liner.State, config appconfig.Config) {
+
+	var transactionArr []transactionv1.Transaction
+
+	entries, err := os.ReadDir("transaction-history")
+	if err != nil {
+		fmt.Println("Error reading directory:", err)
+		return
+	}
+
+	for _, entry := range entries {
+		err = readFileIntoArr(entry.Name(), &transactionArr, config)
+		if err != nil {
+			fmt.Printf("Error reading file %s : %s\n", entry.Name(), err.Error())
+			return
+		}
 	}
 
 	if len(transactionArr) == 0 {
-		return nil
+		return
 	}
 
 	sort.Slice(transactionArr, func(i, j int) bool {
@@ -53,8 +72,6 @@ func ReadTransactionCommand(line *liner.State, config appconfig.Config) error {
 			curDate = t.Date
 			printDate(curDate)
 		}
-		fmt.Printf("Spent %v₽; %s; %s\n", t.Amount, config.Tags[t.Tag], t.Comment)
+		fmt.Printf("Spent %v₽ | %s | %s\n", t.Amount, config.Tags[t.Tag], t.Comment)
 	}
-
-	return nil
 }

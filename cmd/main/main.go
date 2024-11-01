@@ -43,6 +43,7 @@ func main() {
 	line.SetCtrlCAborts(true)
 	line.SetTabCompletionStyle(liner.TabPrints)
 
+cmdLoop:
 	for {
 		cmd, err := line.Prompt(promptString(timeContext))
 		if err != nil {
@@ -55,26 +56,25 @@ func main() {
 		}
 
 		line.AppendHistory(cmd)
-		if cmd == "NEW" {
+
+		switch cmd {
+		case "NEW":
 			appcommands.NewTransactionCommand(line, config, timeContext)
-		} else if cmd == "READ" {
-			err = appcommands.ReadTransactionCommand(line, config)
-			if err != nil {
-				fmt.Println(err.Error())
-			}
-		} else if cmd == "GETDATE" {
+		case "READ":
+			appcommands.ReadTransactionCommand(line, config)
+		case "GETDATE":
 			appcontext.DisplayTime(timeContext)
-		} else if cmd == "SETDATE" {
+		case "SETDATE":
 			if err = appcontext.ParseTime(line, &timeContext); err != nil {
 				fmt.Println("Failed to set date: ", err.Error())
 			}
-		} else if cmd == "ADDTAG" {
+		case "ADDTAG":
 			appcommands.AddTag(line, &config)
-		} else if cmd == "READTAGS" {
+		case "READTAGS":
 			appcommands.ReadTags(config)
-		} else if cmd == "quit" {
-			break
-		} else {
+		case "QUIT":
+			break cmdLoop
+		default:
 			fmt.Println("Unknown command:", cmd)
 		}
 	}

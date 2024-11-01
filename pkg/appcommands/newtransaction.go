@@ -48,7 +48,12 @@ func NewTransactionCommand(line *liner.State, config appconfig.Config, ctx time.
 		Tag:     tagHash,
 	}
 
-	file, err := os.OpenFile("transaction-history.bin", os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
+	if err := os.MkdirAll("transaction-history", 0755); err != nil {
+		fmt.Println("Error creating directory:", err)
+		return
+	}
+
+	file, err := os.OpenFile(fmt.Sprintf("transaction-history/%d.%d.bin", ctx.Month(), ctx.Year()), os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
 	if err != nil {
 		fmt.Println("Error opening file:", err)
 		return
